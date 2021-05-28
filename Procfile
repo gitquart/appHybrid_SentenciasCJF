@@ -1,0 +1,1 @@
+worker: python3 /app/appHybrid_SentenciasCJF/main.py
