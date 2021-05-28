@@ -61,7 +61,16 @@ def readUrl(startPage):
                 btnNext.click()
         #End of clicking     
         # Start preparing Judgment
-        prepareJudgment()   
+        prepareJudgment(startPage) 
+        btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
+        query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
+        db.executeNonQuery(query)
+        if btnNext:
+            btnNext.click()
+        else:
+            print('The button <NEXT> is not working at page ',str(startPage))
+
+
         
 
 
@@ -69,7 +78,7 @@ def printToFile(completeFileName,content):
     with open(completeFileName, 'w') as f:
         f.write(content)
 
-def prepareJudgment(): 
+def prepareJudgment(currentPage): 
     """
     prepareJudgment:
         Reads 10 judgements each time
@@ -131,6 +140,10 @@ def prepareJudgment():
             #Back to main query page
             btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
             btnBack.click()
+        else:
+            print('-------A link to a judgment could not be open at page :',str(currentPage),'-----------')
+            print('--------------------------------The program exited-----------------------------------')
+            os.sys.exit(0)    
             
 
 
