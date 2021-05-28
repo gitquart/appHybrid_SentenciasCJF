@@ -58,12 +58,10 @@ readUrl
 Reads the url from the jury web site
 """
 
-def readUrl(sense,l_bot,l_top):
+def readUrl(startPage):
     
     res=''
-    #Can use noTesis as test variable too
     browser=returnChromeSettings()
-    noTesis=0
     print('Starting process...')
     #Import JSON file  
     if objControl.heroku:   

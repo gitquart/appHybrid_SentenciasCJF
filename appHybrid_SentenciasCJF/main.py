@@ -12,8 +12,6 @@ https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub
 
 """
 
-import json
-import os
 import cassandraUtil as db
 import utils as tool
 from InternalControl import cInternalControl
@@ -27,11 +25,11 @@ if resultSet:
     for row in resultSet:
         lsInfo.append(str(row[0]))
         lsInfo.append(str(row[1]))
-        print('Value from cassandra:',str(row[0]))
-        print('Value from cassandra:',str(row[1]))
-startID=int(lsInfo[1])
+        print('Current query :',str(row[0]))
+        print('Page:',str(row[1]))
+startPage=int(lsInfo[1])
 #The limits in readUrl may vary up to the need of the search
-tool.readUrl(1,startID,5000000)  
+tool.readUrl(startPage)  
 
   
 
