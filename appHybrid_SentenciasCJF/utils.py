@@ -10,19 +10,14 @@ from InternalControl import cInternalControl
 from selenium.webdriver.chrome.options import Options
 
 objControl=cInternalControl()
-
-date_null='1000-01-01'
-msg_error="Error Page!"
-thesis_id=[ 'lblTesisBD','lblInstancia','lblFuente','lblLocMesAño','lblEpoca','lblLocPagina','lblTJ','lblRubro','lblTexto','lblPrecedentes']
-thesis_class=['publicacion']
-precedentes_list=['francesa','nota']
+BROWSER=''
 ls_months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
 thesis_added=False
 
 
 
 def returnChromeSettings():
-    browser=''
+    global BROWSER
     chromedriver_autoinstaller.install()
     if objControl.heroku:
         #Chrome configuration for heroku
@@ -32,7 +27,7 @@ def returnChromeSettings():
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--no-sandbox")
 
-        browser=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),chrome_options=chrome_options)
+        BROWSER=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),chrome_options=chrome_options)
 
     else:
         options = Options()
@@ -45,11 +40,8 @@ def returnChromeSettings():
                }           
 
         options.add_experimental_option("prefs", profile)
-        browser=webdriver.Chrome(options=options)  
+        BROWSER=webdriver.Chrome(options=options)  
 
-    
-
-    return browser 
 
 
 """
@@ -59,88 +51,57 @@ Reads the url from the jury web site
 """
 
 def readUrl(startPage):
-    browser=returnChromeSettings()
+    returnChromeSettings()
     print('Starting process...')
     url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub"
     response= requests.get(url)
     status= response.status_code
     if status==200:
-        browser.get(url)
-    
-
-    json_file='json_judgment.json'
-    #Import JSON file  
-    if objControl.heroku:   
-        json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
-    else:
-        json_jud=devuelveJSON(objControl.rutaLocal+json_file)
-
-
-
-   
-
-"""
-prepareThesis:
-    Reads the url where the service is fetching data from thesis
-"""
-
-def prepareThesis(id_thesis,json_thesis,browser): 
-    
-    result=''
-    strIdThesis=str(id_thesis) 
-    url="https://sjf2.scjn.gob.mx/detalle/tesis/"+strIdThesis
-    response= requests.get(url)
-    status= response.status_code
-    if status==200:
-        browser.get(url)
-        #30 seconds of waiting
-        time.sleep(30)
-        thesis_html = BeautifulSoup(browser.page_source, 'lxml')
-        title=thesis_html.find('title')
-        title_text=title.text
-        if strIdThesis in title_text.strip():   
-            json_full=fillJson(json_thesis,browser,strIdThesis)
-            result=json_full
-        else:
-            print('Missing thesis at ID:',strIdThesis)
-            querySt="update thesis.cjf_control set page="+strIdThesis+" where  id_control=4;"
-            db.executeNonQuery(querySt)
-            print('-------------------------------------------')
-            print('Hey, you can turn me off now!')
-            print('-------------------------------------------')
-            result='m'
-                  
-    else:
-        print('Server failure:',strIdThesis)
-        result=''
+        BROWSER.get(url)
+        #Check the current page to decide if stay or click "Next"
+        if startPage>1:
+            for click in range(1,startPage):
+                btnNext=devuelveElemento('//*[@id="wrapper"]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
+                btnNext.click()
+        #End of clicking     
+        # Start preparing Judgment
+        prepareJudgment()   
         
-    return  result
-
-def clearJSON(json_thesis):
-    json_thesis['id_thesis']=''
-    json_thesis['lst_precedents'].clear()
-    json_thesis['thesis_number']=''
-    json_thesis['instance']=''
-    json_thesis['source']=''
-    json_thesis['book_number']=''  
-    json_thesis['publication_date']='' 
-    json_thesis['dt_publication_date']=''
-    json_thesis['period']=''
-    json_thesis['page']=''
-    json_thesis['jurisprudence_type']=''
-    json_thesis['type_of_thesis']=''
-    json_thesis['subject']=''
-    json_thesis['subject_1']=''
-    json_thesis['subject_2']=''
-    json_thesis['subject_3']=''
-    json_thesis['heading']=''
-    json_thesis['text_content']=''
-    json_thesis['publication']=''
-    json_thesis['multiple_subjects']=''
 
 
-def fillJson(json_thesis,browser,strIdThesis):
-    clearJSON(json_thesis)   
+def printToFile(completeFileName,content):
+    with open(completeFileName, 'w') as f:
+        f.write(content)
+
+def prepareJudgment(): 
+    """
+    prepareJudgment:
+        Reads the url where the service is fetching data from judgment
+    """
+    for x in range(3,13):
+        linkDoc=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div['+str(x)+']/app-resultado/div[1]/div/div/app-engrose/div/div/a')
+        if linkDoc:
+            linkDoc.click()
+            time.sleep(5)
+            json_file='json_judgment.json'
+            #Import JSON file  
+            if objControl.heroku:   
+                json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
+            else:
+                json_jud=devuelveJSON(objControl.rutaLocal+json_file)
+            #----------------Get judgment information-----------------------------------------    
+            #Get judgment content
+            judg_content=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[1]/div/div/app-vengroses/div[2]/div/div/div')
+            json_jud['judgment_text']=judg_content.text
+            
+           
+            
+       
+
+
+
+
+def fillJson(json_thesis,browser,strIdThesis): 
     json_thesis['id_thesis']=int(strIdThesis)
     #Get values from header, and body of thesis
     val=''
@@ -242,68 +203,29 @@ def getCompleteDate(pub_date):
 
 
 
-def getIDLimit(sense,l_bot,l_top,period):
-    
-    if period==10:
-        strperiod='Décima Época'
-  
-    #Onwars for    
-    if(sense==1):
-        for x in range(l_bot,l_top):
-            res=searchInUrl(x,strperiod)
-            if res==1:
-                break
-                
-    #Backwards For             
-    if(sense==2):
-        for x in range(l_top,l_bot,-1): 
-            res=searchInUrl(x,strperiod)
-            if res==1:
-                break
            
-            
-def searchInUrl(x,strperiod):
-    strIdThesis=str(x) 
-    url="https://sjf.scjn.gob.mx/SJFSist/Paginas/DetalleGeneralV2.aspx?ID="+strIdThesis+"&Clase=DetalleTesisBL&Semanario=0"
-    response= requests.get(url)
-    status= response.status_code
-    if status==200:
-        print('ID:',str(x))
-        browser.get(url)
-        time.sleep(1)
-        thesis_html = BeautifulSoup(browser.page_source, 'lxml')
-        title=thesis_html.find('title')
-        title_text=title.text
-        if title_text.strip() != msg_error:
-            thesis_period=thesis_html.find(id='lblEpoca')
-            data=thesis_period.text
-            if data!='':
-                if data.strip()=='Décima Época':
-                    print('ID for ',strperiod,' found in :',strIdThesis)
-                    return 1
-               
-                    
+                               
 def devuelveJSON(jsonFile):
     with open(jsonFile) as json_file:
         jsonObj = json.load(json_file)
     
     return jsonObj 
 
-def devuelveElemento(xPath, browser):
+def devuelveElemento(xPath):
     cEle=0
     while (cEle==0):
-        cEle=len(browser.find_elements_by_xpath(xPath))
+        cEle=len(BROWSER.find_elements_by_xpath(xPath))
         if cEle>0:
-            ele=browser.find_elements_by_xpath(xPath)[0]
+            ele=BROWSER.find_elements_by_xpath(xPath)[0]
 
     return ele  
 
-def devuelveListaElementos(xPath, browser):
+def devuelveListaElementos(xPath):
     cEle=0
     while (cEle==0):
-        cEle=len(browser.find_elements_by_xpath(xPath))
+        cEle=len(BROWSER.find_elements_by_xpath(xPath))
         if cEle>0:
-            ele=browser.find_elements_by_xpath(xPath)
+            ele=BROWSER.find_elements_by_xpath(xPath)
 
     return ele     
     
