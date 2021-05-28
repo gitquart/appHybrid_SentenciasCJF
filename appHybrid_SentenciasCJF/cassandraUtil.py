@@ -50,15 +50,14 @@ def getQuery(query):
                                            
     return resultSet    
           
-def insertJSON(json_thesis):
+def insertJSON(keySpaceTable,json_file):
 
     cluster=getCluster()
     session = cluster.connect()
     session.default_timeout=70           
     #Insert Data as JSON
-    json_thesis=json.dumps(json_thesis)
-    #wf.appendInfoToFile(dirquarttest,str(idThesis)+'.json', json_thesis)                
-    insertSt="INSERT INTO thesis.tbthesis JSON '"+json_thesis+"';" 
+    json_record=json.dumps(json_file)              
+    insertSt="INSERT INTO "+keySpaceTable+" JSON '"+json_record+"';" 
     future = session.execute_async(insertSt)
     future.result()  
     cluster.shutdown()     

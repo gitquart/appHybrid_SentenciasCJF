@@ -11,10 +11,6 @@ from selenium.webdriver.chrome.options import Options
 
 objControl=cInternalControl()
 BROWSER=''
-ls_months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
-thesis_added=False
-
-
 
 def returnChromeSettings():
     global BROWSER
@@ -94,7 +90,8 @@ def prepareJudgment():
             #Content
             json_jud['ID']=str(uuid.uuid4())
             judg_content=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[1]/div/div/app-vengroses/div[2]/div/div/div')
-            json_jud['judgment_text']=judg_content.text
+            #Remove any character that can break cassandra : ','
+            json_jud['judgment_text']=judg_content.text.replace("'","")
             #Title
             title=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/nav/div/a[1]')
             json_jud['title']=title.text
@@ -122,6 +119,15 @@ def prepareJudgment():
             #Topic    
             topic=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[4]/td') 
             json_jud['topic']=topic.text
+            #-------Start Cassandra Read & Write---------------------------------------
+            #Table for this service : thesis.tbjudgment
+            #Check if the judgment is IN.
+            query="select id from thesis.tbjudgment where file='"+json_jud['file']+"' and subject='"+json_jud['subject']+"' ALLOW FILTERING;"
+            resultSet=db.getQuery(query)
+            if len(resultSet.current_rows)>0:
+                print('File: ',json_jud['file'],' existed')
+            else:
+                db.insertJSON('thesis.tbjudgment',json_jud)    
             #Back to main query page
             btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
             btnBack.click()
