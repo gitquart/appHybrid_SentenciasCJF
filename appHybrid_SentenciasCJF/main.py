@@ -14,7 +14,7 @@ https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub
 
 import cassandraUtil as db
 import utils as tool
-from InternalControl import cInternalControl
+from InternalControl import * 
 
 objControl= cInternalControl()
 print('Running program...')
@@ -28,7 +28,6 @@ if resultSet:
         print('Current query :',str(row[0]))
         print('Page:',str(row[1]))
 startPage=int(lsInfo[1])
-#The limits in readUrl may vary up to the need of the search
 tool.readUrl(startPage)  
 
   

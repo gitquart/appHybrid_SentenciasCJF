@@ -68,11 +68,12 @@ def readUrl(startPage):
         browser.get(url)
     
 
+    json_file='json_judgment.json'
     #Import JSON file  
     if objControl.heroku:   
-        json_thesis=devuelveJSON(objControl.rutaHeroku+'thesis_json_base.json')  
+        json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
     else:
-        json_thesis=devuelveJSON(objControl.rutaLocal+'thesis_json_base.json')
+        json_jud=devuelveJSON(objControl.rutaLocal+json_file)
 
 
 
