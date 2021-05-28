@@ -54,12 +54,6 @@ def readUrl(startPage):
     status= response.status_code
     if status==200:
         BROWSER.get(url)
-        #Check the current page to decide if stay or click "Next"
-        if startPage>1:
-            for click in range(1,startPage):
-                btnNext=devuelveElemento('//*[@id="wrapper"]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
-                btnNext.click()
-        #End of clicking     
         # Start preparing Judgment
         #This 'for page' cycle is independent from the query in cassandra, if something fails here then the page is saved in cassandra and it will start over from the page saved
         for page in range(startPage,100000):
@@ -88,6 +82,7 @@ def prepareJudgment(currentPage):
     for x in range(3,13):
         linkDoc=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div['+str(x)+']/app-resultado/div[1]/div/div/app-engrose/div/div/a')
         if linkDoc:
+            time.sleep(3)
             linkDoc.click()
             time.sleep(5)
             json_file='json_judgment.json'
