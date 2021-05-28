@@ -63,34 +63,40 @@ def readUrl(startPage):
     res=''
     browser=returnChromeSettings()
     print('Starting process...')
+    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub"
+    response= requests.get(url)
+    status= response.status_code
+    if status==200:
+        browser.get(url)
+    
+
     #Import JSON file  
     if objControl.heroku:   
         json_thesis=devuelveJSON(objControl.rutaHeroku+'thesis_json_base.json')  
     else:
         json_thesis=devuelveJSON(objControl.rutaLocal+'thesis_json_base.json')
 
-    for x in range(l_bot,l_top):
-        print('Current thesis:',str(x))
-        res=prepareThesis(x,json_thesis,browser)
-        # "m" means it is a missing space, no thesis found, then stop the program
-        if res=='m':
-            print("Main program is done")
-            os.sys.exit(0)
-        if res!='':
-            #Check if the record exist
-            idThesis=res['id_thesis']
-            heading=res['heading']
-            querySt="select id_thesis from thesis.tbthesis where id_thesis="+str(idThesis)+" and heading='"+heading+"'"
-            resultSet=db.getQuery(querySt)
-            if resultSet:
-                pass
-            else:
-                #Insert JSON
-                res=db.insertJSON(res)  
-                if res:
-                    print('Thesis ready ID: ',x) 
-                    querySt="update thesis.cjf_control set page="+str(x)+" where  id_control=4;"
-                    db.executeNonQuery(querySt)                  
+    print('Current thesis:',str(x))
+    res=prepareThesis(x,json_thesis,browser)
+    # "m" means it is a missing space, no thesis found, then stop the program
+    if res=='m':
+        print("Main program is done")
+        os.sys.exit(0)
+    if res!='':
+        #Check if the record exist
+        idThesis=res['id_thesis']
+        heading=res['heading']
+        querySt="select id_thesis from thesis.tbthesis where id_thesis="+str(idThesis)+" and heading='"+heading+"'"
+        resultSet=db.getQuery(querySt)
+        if resultSet:
+            pass
+        else:
+            #Insert JSON
+            res=db.insertJSON(res)  
+            if res:
+                print('Thesis ready ID: ',x) 
+                querySt="update thesis.cjf_control set page="+str(x)+" where  id_control=4;"
+                db.executeNonQuery(querySt)                  
     browser.quit()  
     
     return 'It is all done'
