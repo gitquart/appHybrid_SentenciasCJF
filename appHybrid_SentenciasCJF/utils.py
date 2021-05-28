@@ -61,14 +61,16 @@ def readUrl(startPage):
                 btnNext.click()
         #End of clicking     
         # Start preparing Judgment
-        prepareJudgment(startPage) 
-        btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
-        query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
-        db.executeNonQuery(query)
-        if btnNext:
-            btnNext.click()
-        else:
-            print('The button <NEXT> is not working at page ',str(startPage))
+        #This 'for page' cycle is independent from the query in cassandra, if something fails here then the page is saved in cassandra and it will start over from the page saved
+        for page in range(startPage,100000):
+            prepareJudgment(page) 
+            btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
+            query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
+            db.executeNonQuery(query)
+            if btnNext:
+                btnNext.click()
+            else:
+                print('The button <NEXT> is not working at page ',str(startPage))
 
 
         
@@ -136,7 +138,8 @@ def prepareJudgment(currentPage):
             if len(resultSet.current_rows)>0:
                 print('File: ',json_jud['file'],' existed')
             else:
-                db.insertJSON('thesis.tbjudgment',json_jud)    
+                db.insertJSON('thesis.tbjudgment',json_jud) 
+                print('File: ',json_jud['file'],' added')   
             #Back to main query page
             btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
             btnBack.click()
