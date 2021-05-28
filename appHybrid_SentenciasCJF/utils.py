@@ -4,7 +4,7 @@ import os
 from selenium import webdriver
 import chromedriver_autoinstaller
 import requests 
-from bs4 import BeautifulSoup
+import uuid
 import time
 from InternalControl import cInternalControl
 from selenium.webdriver.chrome.options import Options
@@ -53,7 +53,7 @@ Reads the url from the jury web site
 def readUrl(startPage):
     returnChromeSettings()
     print('Starting process...')
-    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub"
+    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub&page="+str(startPage)
     response= requests.get(url)
     status= response.status_code
     if status==200:
@@ -76,7 +76,7 @@ def printToFile(completeFileName,content):
 def prepareJudgment(): 
     """
     prepareJudgment:
-        Reads the url where the service is fetching data from judgment
+        Reads 10 judgements each time
     """
     for x in range(3,13):
         linkDoc=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div['+str(x)+']/app-resultado/div[1]/div/div/app-engrose/div/div/a')
@@ -90,116 +90,45 @@ def prepareJudgment():
             else:
                 json_jud=devuelveJSON(objControl.rutaLocal+json_file)
             #----------------Get judgment information-----------------------------------------    
-            #Get judgment content
+            #----------------------FIRST TAB--------------------------------------------------
+            #Content
+            json_jud['ID']=str(uuid.uuid4())
             judg_content=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[1]/div/div/app-vengroses/div[2]/div/div/div')
             json_jud['judgment_text']=judg_content.text
+            #Title
+            title=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/nav/div/a[1]')
+            json_jud['title']=title.text
+            #-------------------2ND TAB 'Ficha técnica' click tab-----------------------------
+            tabFT=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/nav/div/a[2]')
+            tabFT.click()
+            time.sleep(5)
+            #File
+            exp_file=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[1]/td')
+            json_jud['file']=exp_file.text
+            json_jud['strDate']=exp_file.text
+            exp_file_value=exp_file.text
+            #Year
+            year=int(exp_file_value.split('/')[1])
+            json_jud['year']=year
+            #Subject
+            subject=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[2]/td')
+            json_jud['subject']=subject.text
+            #Minister
+            minister=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[3]/td')
+            if minister.text!='':
+                json_jud['minister']=minister.text
+            else:
+                json_jud['minister']='No value'
+            #Topic    
+            topic=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[4]/td') 
+            json_jud['topic']=topic.text
+            #Back to main query page
+            btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
+            btnBack.click()
             
-           
+
+
             
-       
-
-
-
-
-def fillJson(json_thesis,browser,strIdThesis): 
-    json_thesis['id_thesis']=int(strIdThesis)
-    #Get values from header, and body of thesis
-    val=''
-    val=devuelveElemento('//*[@id="divStickyTbody"]/div[3]/div[1]/p',browser).text
-    val=val.replace('Tesis:','').strip()
-    json_thesis['thesis_number']=val
-    val=''
-    val=devuelveElemento('//*[@id="divStickyTbody"]/div[2]/div[1]/p',browser).text
-    val=val.replace('Instancia:','').strip()
-    json_thesis['instance']=val
-    val=''
-    val=devuelveElemento('//*[@id="divStickyTbody"]/div[3]/div[2]/p',browser).text
-    val=val.replace('Fuente:','').strip()
-    json_thesis['source']=val
-    chunks=val.split('.')
-    json_thesis['book_number']=chunks[1].replace('\n','')
-    #Dates fields
-    val=''
-    val=devuelveElemento('//*[@id="divDetalle"]/div/div/div/div/div[3]/jhi-tesis-detalle/div[4]/div[4]',browser).text
-    json_thesis['publication']=val  
-    chunks=val.split(' ')
-    dateStr=chunks[6]+'-'+chunks[8]+'-'+chunks[10]
-    json_thesis['dt_publication_date']=getCompleteDate(dateStr) 
-    json_thesis['publication_date']=json_thesis['dt_publication_date']
-    val=''
-    val=devuelveElemento('//*[@id="divStickyTbody"]/div[2]/div[2]/p',browser).text
-    json_thesis['period']=val.strip()
-    if val.strip()=='Quinta Época':
-        json_thesis['period_number']=5
-    if val.strip()=='Sexta Época':
-        json_thesis['period_number']=6
-    if val.strip()=='Séptima Época':
-        json_thesis['period_number']=7
-    if val.strip()=='Octava Época':
-        json_thesis['period_number']=8        
-    if val.strip()=='Novena Época':
-        json_thesis['period_number']=9
-    if val.strip()=='Décima Época':
-        json_thesis['period_number']=10
-
-    val=''
-    val=devuelveElemento('//*[@id="divStickyTbody"]/div[3]/div[3]/p',browser).text
-    val=val.replace('Tipo:','').strip()
-    json_thesis['type_of_thesis']=val  
-    val=''
-    val=devuelveElemento('//*[@id="divStickyTbody"]/div[2]/div[3]/p',browser).text
-    val=val.replace('Materia(s):','').strip() 
-    if ',' in val:
-        chunks=val.split(',')
-        count=len(chunks)
-        json_thesis['subject']=chunks[0]
-        json_thesis['subject_1']=chunks[1]   
-        if count==3:
-            json_thesis['subject_2']=chunks[1]
-        json_thesis['multiple_subjects']=True    
-
-    else:
-        json_thesis['subject']=val
-        json_thesis['multiple_subjects']=False
-
-    val=''
-    #Heading
-    val=devuelveElemento('//*[@id="divRubro"]/p',browser).text
-    val=val.replace("'",'').strip()  
-    json_thesis['heading']=val 
-    #Main text
-    val=devuelveElemento('//*[@id="divTexto"]',browser).text
-    val=val.replace("'",'').strip() 
-    json_thesis['text_content']=val 
-    #Precedent
-    val=devuelveElemento('//*[@id="divPrecedente"]',browser).text
-    val=val.replace("'",'').strip() 
-    json_thesis['lst_precedents'].append(val)
-
-
-
-    return json_thesis    
-                                 
-
-def getCompleteDate(pub_date):
-    pub_date=pub_date.strip()
-    if pub_date!='':
-        chunks=pub_date.split('-')
-        month=str(chunks[1].strip())
-        day=str(chunks[0].strip())
-        year=str(chunks[2].strip())
-        month_lower=month.lower()
-        for item in ls_months:
-            if month_lower==item:
-                month=str(ls_months.index(item)+1)
-                if len(month)==1:
-                    month='0'+month
-                    break
-        if day=='':
-            day='01'        
-                
-    completeDate=year+'-'+month+'-'+day                   
-    return completeDate
 
 
 
