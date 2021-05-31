@@ -85,7 +85,10 @@ def prepareJudgment(currentPage):
         if linkDoc:
             print('-----------Waiting 10 secs for the link of the document to be ready--------')
             time.sleep(10)
-            linkDoc.click()
+            href=linkDoc.get_attribute('href')
+            print('Value of linkDoc:',href)
+            if href!='':
+                linkDoc.click()
             time.sleep(5)
             json_file='json_judgment.json'
             #Import JSON file  
