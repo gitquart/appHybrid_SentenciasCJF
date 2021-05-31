@@ -120,7 +120,7 @@ def prepareJudgment(currentPage):
             json_jud['strDate']=exp_file.text
             exp_file_value=exp_file.text
             #Year
-            if '-' in exp_file:
+            if '-' in exp_file.text:
                 #Other cases
                 #14/2021-CA
                 strgetValue=exp_file_value.split('/')[1]
