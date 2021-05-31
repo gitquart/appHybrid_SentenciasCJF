@@ -25,6 +25,7 @@ if resultSet:
     for row in resultSet:
         lsInfo.append(str(row[0]))
         lsInfo.append(str(row[1]))
+        lsInfo.append(str(row[2]))
         print('Current query :',str(row[0]))
         print('Page:',str(row[1]))
         print('Limit:',str(row[2]))

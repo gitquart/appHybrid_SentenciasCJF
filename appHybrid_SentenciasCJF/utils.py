@@ -83,7 +83,8 @@ def prepareJudgment(currentPage):
     for x in range(3,13):
         linkDoc=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div['+str(x)+']/app-resultado/div[1]/div/div/app-engrose/div/div/a')
         if linkDoc:
-            time.sleep(3)
+            print('-----------Waiting 10 secs for the link of the document to be ready--------')
+            time.sleep(10)
             linkDoc.click()
             time.sleep(5)
             json_file='json_judgment.json'
