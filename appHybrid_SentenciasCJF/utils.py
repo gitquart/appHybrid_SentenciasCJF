@@ -81,14 +81,17 @@ def prepareJudgment(currentPage):
         Reads 10 judgements each time
     """
     for x in range(3,13):
+        #/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[3]/app-resultado/div[1]/div/div/app-engrose/div/div/a/span
         linkDoc=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div['+str(x)+']/app-resultado/div[1]/div/div/app-engrose/div/div/a')
+        time.sleep(3)
         if linkDoc:
             print('-----------Waiting 10 secs for the link of the document to be ready--------')
             time.sleep(10)
             href=linkDoc.get_attribute('href')
             print('Value of linkDoc:',href)
             if href!='':
-                linkDoc.click()
+                #linkDoc.click()
+                BROWSER.execute_script("arguments[0].click();", linkDoc)
             time.sleep(5)
             json_file='json_judgment.json'
             #Import JSON file  
@@ -108,7 +111,8 @@ def prepareJudgment(currentPage):
             json_jud['title']=title.text
             #-------------------2ND TAB 'Ficha técnica' click tab-----------------------------
             tabFT=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/nav/div/a[2]')
-            tabFT.click()
+            #tabFT.click()
+            BROWSER.execute_script("arguments[0].click();", tabFT)
             time.sleep(5)
             #File
             exp_file=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[1]/td')
@@ -133,19 +137,23 @@ def prepareJudgment(currentPage):
             #-------Start Cassandra Read & Write---------------------------------------
             #Table for this service : thesis.tbjudgment
             #Check if the judgment is IN.
+            strFile=json_jud['file'];
+            print('Working with: ',strFile)
             query="select id from thesis.tbjudgment where file='"+json_jud['file']+"' and subject='"+json_jud['subject']+"' ALLOW FILTERING;"
             resultSet=db.getQuery(query)
             if len(resultSet.current_rows)>0:
-                print('File: ',json_jud['file'],' existed')
+                print('File: ',strFile,' existed')
             else:
                 db.insertJSON('thesis.tbjudgment',json_jud) 
-                print('File: ',json_jud['file'],' added')  
+                print('File: ',strFile,' added')  
 
             time.sleep(10)
             print('Slowing down 10 seconds for cassandra')     
             #Back to main query page
             btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
-            btnBack.click()
+            time.sleep(3)
+            BROWSER.execute_script("arguments[0].click();", btnBack)
+            #btnBack.click()
         else:
             print('-------A link to a judgment could not be open at page :',str(currentPage),'-----------')
             print('--------------------------------The program exited-----------------------------------')
