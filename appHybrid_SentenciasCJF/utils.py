@@ -120,14 +120,14 @@ def prepareJudgment(currentPage):
             json_jud['strDate']=exp_file.text
             exp_file_value=exp_file.text
             #Year
-             #Other cases
-            #14/2021-CA
             if '-' in exp_file:
+                #Other cases
+                #14/2021-CA
                 strgetValue=exp_file_value.split('/')[1]
                 year=int(strgetValue.split('-')[0])
             else:    
                 year=int(exp_file_value.split('/')[1])
-                
+
             json_jud['year']=year
             #Subject
             subject=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[2]/td')
