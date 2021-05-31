@@ -18,7 +18,7 @@ from InternalControl import *
 
 objControl= cInternalControl()
 print('Running program...')
-querySt="select query,page from thesis.cjf_control where id_control="+str(objControl.idControl)+"  ALLOW FILTERING"
+querySt="select query,page,limit_iteration from thesis.cjf_control where id_control="+str(objControl.idControl)+"  ALLOW FILTERING"
 resultSet=db.getQuery(querySt)
 lsInfo=[]
 if resultSet: 
@@ -27,8 +27,10 @@ if resultSet:
         lsInfo.append(str(row[1]))
         print('Current query :',str(row[0]))
         print('Page:',str(row[1]))
+        print('Limit:',str(row[2]))
 startPage=int(lsInfo[1])
-tool.readUrl(startPage)  
+limit=int(lsInfo[2])
+tool.readUrl(startPage,limit)  
 
   
 

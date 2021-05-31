@@ -46,7 +46,7 @@ readUrl
 Reads the url from the jury web site
 """
 
-def readUrl(startPage):
+def readUrl(startPage,limit):
     returnChromeSettings()
     print('Starting process...')
     url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub&page="+str(startPage)
@@ -54,9 +54,10 @@ def readUrl(startPage):
     status= response.status_code
     if status==200:
         BROWSER.get(url)
+        time.sleep(5)
         # Start preparing Judgment
         #This 'for page' cycle is independent from the query in cassandra, if something fails here then the page is saved in cassandra and it will start over from the page saved
-        for page in range(startPage,100000):
+        for page in range(startPage,limit):
             prepareJudgment(page) 
             btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
             query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
@@ -134,7 +135,10 @@ def prepareJudgment(currentPage):
                 print('File: ',json_jud['file'],' existed')
             else:
                 db.insertJSON('thesis.tbjudgment',json_jud) 
-                print('File: ',json_jud['file'],' added')   
+                print('File: ',json_jud['file'],' added')  
+
+            time.sleep(10)
+            print('Slowing down 10 seconds for cassandra')     
             #Back to main query page
             btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
             btnBack.click()
