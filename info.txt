@@ -12,3 +12,8 @@ Build packs
 heroku/python
 https://github.com/heroku/heroku-buildpack-google-chrome
 https://github.com/heroku/heroku-buildpack-chromedriver
+
+
+---------Comments----------
+
+Initially this service was in quart account but it had troubles on RAM, I changed this service to test account.
