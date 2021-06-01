@@ -70,6 +70,7 @@ def readUrl(startPage,limit):
        
 
         prepareJudgment(startPage,json_jud) 
+        print('----------------End of Page---------------------------',str(startPage))
         query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
         db.executeNonQuery(query)
 
@@ -96,7 +97,6 @@ def prepareJudgment(currentPage,json_jud):
             href=linkDoc.get_attribute('href')
             print('Value of linkDoc:',href)
             if href!='':
-                #linkDoc.click()
                 BROWSER.execute_script("arguments[0].click();", linkDoc)
             time.sleep(5)
             
@@ -168,6 +168,11 @@ def prepareJudgment(currentPage,json_jud):
             time.sleep(10)
             print('Slowing down 10 seconds for cassandra')     
             #Back to main query page
+            btnBack= devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
+            if btnBack:
+                time.sleep(5)
+                BROWSER.execute_script("arguments[0].click();",btnBack)
+
             
         else:
             print('-------A link to a judgment could not be open at page :',str(currentPage),'-----------')
