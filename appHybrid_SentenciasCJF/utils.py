@@ -70,7 +70,7 @@ def readUrl(startPage,limit):
        
 
         prepareJudgment(startPage,json_jud) 
-        print('----------------End of Page---------------------------',str(startPage))
+        print('----------------End of Page '+str(startPage)+'---------------------------')
         query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
         db.executeNonQuery(query)
 
