@@ -53,7 +53,7 @@ def readUrl(startPage,limit):
         os.sys.exit(0)
     returnChromeSettings()
     print('Starting process...')
-    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub"
+    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub&page="+str(startPage)
     response= requests.get(url)
     status= response.status_code
     if status==200:
@@ -67,23 +67,11 @@ def readUrl(startPage,limit):
             json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
         else:
             json_jud=devuelveJSON(objControl.rutaLocal+json_file)
-        #Set page control to the page
-        if startPage>1:
-            btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
-            time.sleep(4)
-            BROWSER.execute_script("arguments[0].click();",btnNext)
+       
 
         prepareJudgment(startPage,json_jud) 
-        btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
         query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
         db.executeNonQuery(query)
-        if btnNext:
-            #btnNext.click()
-            BROWSER.execute_script("arguments[0].click();",btnNext)
-            print('<NEXT> button has been clicked!')
-            time.sleep(5)
-        else:
-            print('The button <NEXT> is not working at page ',str(startPage))
 
 
         
@@ -180,10 +168,7 @@ def prepareJudgment(currentPage,json_jud):
             time.sleep(10)
             print('Slowing down 10 seconds for cassandra')     
             #Back to main query page
-            btnBack=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[1]/div/div[1]/div/div/a[2]/button')
-            time.sleep(3)
-            BROWSER.execute_script("arguments[0].click();", btnBack)
-            #btnBack.click()
+            
         else:
             print('-------A link to a judgment could not be open at page :',str(currentPage),'-----------')
             print('--------------------------------The program exited-----------------------------------')
