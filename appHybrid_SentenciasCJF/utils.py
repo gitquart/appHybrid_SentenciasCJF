@@ -70,7 +70,10 @@ def readUrl(startPage,limit):
             query='update thesis.cjf_control set page='+str(page)+' where id_control='+str(objControl.idControl)
             db.executeNonQuery(query)
             if btnNext:
-                btnNext.click()
+                #btnNext.click()
+                BROWSER.execute_script("arguments[0].click();",btnNext)
+                print('<NEXT> button has been clicked!')
+                time.sleep(5)
             else:
                 print('The button <NEXT> is not working at page ',str(startPage))
 
