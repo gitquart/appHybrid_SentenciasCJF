@@ -11,7 +11,7 @@ from selenium.webdriver.chrome.options import Options
 
 objControl=cInternalControl()
 BROWSER=''
-json_jud={}
+
 
 def returnChromeSettings():
     global BROWSER
@@ -65,7 +65,7 @@ def readUrl(startPage,limit):
         else:
             json_jud=devuelveJSON(objControl.rutaLocal+json_file)
         for page in range(startPage,limit):
-            prepareJudgment(page) 
+            prepareJudgment(page,json_jud) 
             btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
             query='update thesis.cjf_control set page='+str(page)+' where id_control='+str(objControl.idControl)
             db.executeNonQuery(query)
@@ -85,7 +85,7 @@ def printToFile(completeFileName,content):
     with open(completeFileName, 'w') as f:
         f.write(content)
 
-def prepareJudgment(currentPage): 
+def prepareJudgment(currentPage,json_jud): 
     """
     prepareJudgment:
         Reads 10 judgements each time
@@ -128,14 +128,14 @@ def prepareJudgment(currentPage):
             tabFT=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/nav/div/a[2]')
             #tabFT.click()
             BROWSER.execute_script("arguments[0].click();", tabFT)
-            time.sleep(5)
+            time.sleep(9)
             #File
             exp_file=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[1]/td')
-            json_jud['file']=exp_file.text
-            json_jud['strDate']=exp_file.text
             exp_file_value=exp_file.text
+            json_jud['file']=exp_file_value
+            json_jud['strDate']=exp_file_value
             #Year
-            if '-' in exp_file.text:
+            if '-' in exp_file_value:
                 #Other cases
                 #14/2021-CA
                 strgetValue=exp_file_value.split('/')[1]
