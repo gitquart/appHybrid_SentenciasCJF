@@ -48,9 +48,12 @@ Reads the url from the jury web site
 """
 
 def readUrl(startPage,limit):
+    if startPage==limit:
+        print('The query is over')
+        os.sys.exit(0)
     returnChromeSettings()
     print('Starting process...')
-    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub&page="+str(startPage)
+    url="https://bj.scjn.gob.mx/busqueda?q=*&indice=sentencias_pub"
     response= requests.get(url)
     status= response.status_code
     if status==200:
@@ -64,18 +67,23 @@ def readUrl(startPage,limit):
             json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
         else:
             json_jud=devuelveJSON(objControl.rutaLocal+json_file)
-        for page in range(startPage,limit):
-            prepareJudgment(page,json_jud) 
+        #Set page control to the page
+        if startPage>1:
             btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
-            query='update thesis.cjf_control set page='+str(page)+' where id_control='+str(objControl.idControl)
-            db.executeNonQuery(query)
-            if btnNext:
-                #btnNext.click()
-                BROWSER.execute_script("arguments[0].click();",btnNext)
-                print('<NEXT> button has been clicked!')
-                time.sleep(5)
-            else:
-                print('The button <NEXT> is not working at page ',str(startPage))
+            time.sleep(4)
+            BROWSER.execute_script("arguments[0].click();",btnNext)
+
+        prepareJudgment(startPage,json_jud) 
+        btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
+        query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
+        db.executeNonQuery(query)
+        if btnNext:
+            #btnNext.click()
+            BROWSER.execute_script("arguments[0].click();",btnNext)
+            print('<NEXT> button has been clicked!')
+            time.sleep(5)
+        else:
+            print('The button <NEXT> is not working at page ',str(startPage))
 
 
         
