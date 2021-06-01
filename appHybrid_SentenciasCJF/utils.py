@@ -157,7 +157,7 @@ def prepareJudgment(currentPage):
             #Table for this service : thesis.tbjudgment
             #Check if the judgment is IN.
             strFile=json_jud['file'];
-            print('Working with: ',strFile)
+            print('Working with: ',strFile,' , row :',str(x-2),' page :',str(currentPage))
             query="select id from thesis.tbjudgment where file='"+json_jud['file']+"' and subject='"+json_jud['subject']+"' ALLOW FILTERING;"
             resultSet=db.getQuery(query)
             if len(resultSet.current_rows)>0:
