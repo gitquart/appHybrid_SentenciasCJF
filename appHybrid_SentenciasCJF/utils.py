@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.options import Options
 
 objControl=cInternalControl()
 BROWSER=''
+json_jud={}
 
 def returnChromeSettings():
     global BROWSER
@@ -57,6 +58,12 @@ def readUrl(startPage,limit):
         time.sleep(5)
         # Start preparing Judgment
         #This 'for page' cycle is independent from the query in cassandra, if something fails here then the page is saved in cassandra and it will start over from the page saved
+        json_file='json_judgment.json'
+        #Import JSON file  
+        if objControl.heroku:   
+            json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
+        else:
+            json_jud=devuelveJSON(objControl.rutaLocal+json_file)
         for page in range(startPage,limit):
             prepareJudgment(page) 
             btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
@@ -93,14 +100,19 @@ def prepareJudgment(currentPage):
                 #linkDoc.click()
                 BROWSER.execute_script("arguments[0].click();", linkDoc)
             time.sleep(5)
-            json_file='json_judgment.json'
-            #Import JSON file  
-            if objControl.heroku:   
-                json_jud=devuelveJSON(objControl.rutaHeroku+json_file)  
-            else:
-                json_jud=devuelveJSON(objControl.rutaLocal+json_file)
+            
             #----------------Get judgment information-----------------------------------------    
             #----------------------FIRST TAB--------------------------------------------------
+            #Clean JSON
+            json_jud['ID']=''
+            json_jud['judgment_text']=''
+            json_jud['file']=''
+            json_jud['strDate']=''
+            json_jud['year']=0
+            json_jud['subject']=''
+            json_jud['minister']=''
+            json_jud['topic']=''
+            json_jud['title']=''
             #Content
             json_jud['ID']=str(uuid.uuid4())
             judg_content=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[1]/div/div/app-vengroses/div[2]/div/div/div')
