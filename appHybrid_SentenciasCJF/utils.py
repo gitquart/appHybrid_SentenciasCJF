@@ -67,7 +67,7 @@ def readUrl(startPage,limit):
         for page in range(startPage,limit):
             prepareJudgment(page) 
             btnNext=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-resultados/main/div/div/div[2]/div[1]/div/div[1]/div[2]/ngb-pagination/ul/li[9]/a')
-            query='update thesis.cjf_control set page='+str(startPage+1)+' where id_control='+str(objControl.idControl)
+            query='update thesis.cjf_control set page='+str(page)+' where id_control='+str(objControl.idControl)
             db.executeNonQuery(query)
             if btnNext:
                 btnNext.click()
