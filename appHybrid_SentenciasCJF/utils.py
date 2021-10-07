@@ -151,11 +151,14 @@ def prepareJudgment(currentPage,json_jud):
                 json_jud['minister']='No value'
             #Topic    
             topic=devuelveElemento('/html/body/div[2]/app-root/app-sitio/div/app-viewer/main/div/div[2]/section/div/div/div/div[2]/app-vefichatecnica/div/div[2]/table/tbody[1]/tr[4]/td') 
-            json_jud['topic']=topic.text
+            strTopic=None
+            strTopic=topic.text
+            #Removing apostrophes because they can mess with cassandra
+            json_jud['topic']=str(strTopic).replace("'",'')
             #-------Start Cassandra Read & Write---------------------------------------
             #Table for this service : thesis.tbjudgment
             #Check if the judgment is IN.
-            strFile=json_jud['file'];
+            strFile=json_jud['file']
             print('Working with: ',strFile,' , row :',str(x-2),' page :',str(currentPage))
             query="select id from thesis.tbjudgment where file='"+json_jud['file']+"' and subject='"+json_jud['subject']+"' ALLOW FILTERING;"
             resultSet=db.getQuery(query)
